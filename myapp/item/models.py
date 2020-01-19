@@ -25,13 +25,6 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    def save():
-        # ingredientsList를 comma로 split
-        # 각 성분 ingredients로 저장
-        # productscore 생성 저장
-        # product instance 저장
-        
-    
 
 # 피부 타입별 상품의 성분 점수 클래스
 class ProductScore(models.Model):
@@ -42,9 +35,3 @@ class ProductScore(models.Model):
 
     def __str__(self):
         return self.product_id
-    
-
-
-
-
-    
