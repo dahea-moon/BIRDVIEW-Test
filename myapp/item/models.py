@@ -43,19 +43,11 @@ class Product(models.Model):
     gender = models.CharField(max_length=6)
     category = models.CharField(max_length=15)
     ingredientsList = models.TextField()
-    ingredients = models.ManyToManyField(Ingredient)
+    ingredients = models.ManyToManyField(Ingredient, related_name='product')
     monthlySales = models.IntegerField()
+    oily_score = models.IntegerField(default=0)
+    dry_score = models.IntegerField(default=0)
+    sensitive_score = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
-
-
-# 피부 타입별 상품의 성분 점수 클래스
-class ProductScore(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    oily_score = models.IntegerField()
-    dry_score = models.IntegerField()
-    sensitive_score = models.IntegerField()
-
-    def __str__(self):
-        return self.product.name

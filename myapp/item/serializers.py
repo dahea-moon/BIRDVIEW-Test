@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Ingredient, ProductScore
+from .models import Product, Ingredient
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -38,10 +38,4 @@ class ProductRecommendSerializer(serializers.ModelSerializer):
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = '__all__'
-
-
-class ProductScoreSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductScore
         fields = '__all__'
