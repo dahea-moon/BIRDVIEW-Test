@@ -1,4 +1,4 @@
-from django.shortcuts import render, HttpResponse, Http404
+from django.shortcuts import render, HttpResponse, get_object_or_404, Http404
 from django.views.decorators.http import require_GET
 
 from rest_framework import generics, mixins, status
@@ -28,7 +28,7 @@ class ProductList(mixins.ListModelMixin, generics.GenericAPIView):
             include_ingredient = include_ingredient.split(',')
             for ingredient in include_ingredient:
                 target = Ingredient.objects.get(name=ingredient)
-                queryset = queryset.filter(ingredients__in=[target])
+                queryset = queryset.filter(ingredientsList__in=[target])
         
         if exclude_ingredient != None:
             exclude_ingredient = exclude_ingredient.split(',')
@@ -36,19 +36,13 @@ class ProductList(mixins.ListModelMixin, generics.GenericAPIView):
             for ingredient in exclude_ingredient:
                 target = Ingredient.objects.get(name=ingredient)
                 exclude_ingredient_id.append(target)
-            queryset = queryset.exclude(ingredients__in=exclude_ingredient_id)
+            queryset = queryset.exclude(ingredientsList__in=exclude_ingredient_id)
 
-        if skin_type != None:
-            queryset = queryset.order_by(f'-{skin_type}_score', 'price')
+        queryset = queryset.order_by(f'-{skin_type}_score', 'price')
 
         return queryset
 
     def list(self, request):
-        skin_type = self.request.query_params.get('skin_type', None)
-        if skin_type == None:
-            message = {'message': 'Error 400, skin type must be defined'}
-            return Response(message, status=status.HTTP_400_BAD_REQUEST)
-
         queryset = self.get_queryset()
 
         page = self.paginate_queryset(queryset)
@@ -61,13 +55,45 @@ class ProductList(mixins.ListModelMixin, generics.GenericAPIView):
         return Response(response_list)
 
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+    def get(self, request):
+        skin_type = self.request.query_params.get('skin_type', None)
+        if skin_type == None:
+            message = {'message': 'Error 400, skin type must be defined'}
+            return Response(message, status=status.HTTP_400_BAD_REQUEST)
+        return self.list(request)
 
 
 class ProductDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
-    def get(self, request, *args, **kewargs):
-        return self.retrieve(request, *args, **kwargs)
+    serializer_class = ProductDetailSerializer
+
+    def get_recommends(self, product_id):
+        skin_type = self.request.query_params.get('skin_type', None)
+        queryset = Product.objects.exclude(id=product_id)
+        queryset = queryset.order_by(f'-{skin_type}_score', 'price')[:3]
+        return ProductRecommendSerializer(queryset, many=True)
+
+    def get_object(self, product_id):
+        queryset = Product.objects.all()
+        product = get_object_or_404(queryset, id=product_id)
+        return product
+    
+    def retrieve(self, request, product_id):
+        product = self.get_object(product_id)
+        serializer = self.get_serializer(product)
+        # product = ProductDetailSerializer(product)
+        print(serializer.data)
+        recommends = self.get_recommends(product_id)
+
+        print(recommends.data)
+        response = serializer.data + recommends.data
+        return Response(response)
+
+    def get(self, request, product_id):
+        skin_type = self.request.query_params.get('skin_type', None)
+        if skin_type == None:
+            message = {'message': 'Error 400, skin type must be defined'}
+            return Response(message, status=status.HTTP_400_BAD_REQUEST)
+        return self.retrieve(request, product_id)
 
 
 
@@ -79,11 +105,11 @@ def create_product(request):
     product_form = ProductForm(request.GET)
     if product_form.is_valid():
         product = product_form.save()
-        ingredient_list = product.ingredientsList.split(',')
+        ingredient_list = product.ingredients.split(',')
         oily_score, dry_score, sensitive_score = 0, 0, 0
         for ingredient in ingredient_list:
             target_ingredient = Ingredient.objects.get(name=ingredient)
-            product.ingredients.add(target_ingredient)
+            product.ingredientsList.add(target_ingredient)
             oily_score += target_ingredient.get_oily_score()
             dry_score += target_ingredient.get_dry_score()
             sensitive_score += target_ingredient.get_sensitive_score()
