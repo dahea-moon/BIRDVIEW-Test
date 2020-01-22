@@ -32,10 +32,11 @@ class ProductList(mixins.ListModelMixin, generics.GenericAPIView):
         
         if exclude_ingredient != None:
             exclude_ingredient = exclude_ingredient.split(',')
+            exclude_ingredient_id = []
             for ingredient in exclude_ingredient:
                 target = Ingredient.objects.get(name=ingredient)
-                has_exclude_ingredient = queryset.filter(ingredients__in=[target])
-                queryset = queryset.difference(has_exclude_ingredient)
+                exclude_ingredient_id.append(target)
+            queryset = queryset.exclude(ingredients__in=exclude_ingredient_id)
 
         if skin_type != None:
             queryset = queryset.order_by(f'-{skin_type}_score', 'price')
@@ -43,7 +44,6 @@ class ProductList(mixins.ListModelMixin, generics.GenericAPIView):
         return queryset
 
     def list(self, request):
-        print(request.query_params)
         skin_type = self.request.query_params.get('skin_type', None)
         if skin_type == None:
             message = {'message': 'Error 400, skin type must be defined'}
