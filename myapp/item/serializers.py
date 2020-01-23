@@ -38,6 +38,10 @@ class ProductRecommendSerializer(serializers.ModelSerializer):
         return imgUrl
 
 
+# class ProductDetailResponseSerializer(serializers.Serializer):
+
+
+
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
