@@ -63,8 +63,13 @@ class ProductList(mixins.ListModelMixin, generics.GenericAPIView):
         return self.list(request)
 
 
-class ProductDetail(mixins.ListModelMixin, generics.GenericAPIView):
-    serializer_class = ProductRecommendSerializer
+class ProductDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
+    serializer_class = ProductDetailSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['skin_type'] = self.request.query_params.get('skin_type')
+        return context
 
     def get_recommends(self, product_id):
         skin_type = self.request.query_params.get('skin_type', None)
@@ -77,25 +82,21 @@ class ProductDetail(mixins.ListModelMixin, generics.GenericAPIView):
         product = get_object_or_404(queryset, id=product_id)
         return product
     
-    def list(self, request, product_id):
+    def retrieve(self, request, product_id):
         product = self.get_product(product_id)
-        # serializer = self.get_serializer(product)
-        # product = ProductDetailSerializer(product)
+        serializer = self.get_serializer(product, context={'request': request})
+        result = list(serializer.data)
+        print(result)
+        print(type(result))
 
-        recommends = self.get_recommends(product_id)
-        # recommends = ProductRecommendSerializer(recommends, many=True).data
-        serializer = self.get_serializer(recommends, many=True)
-        # recommends.insert(0, product)
-        print(recommends)
-        # response = serializer.data + recommends.data
-        return Response(serializer.data)
+        return Response(result)
 
     def get(self, request, product_id):
         skin_type = self.request.query_params.get('skin_type', None)
         if skin_type == None:
             message = {'message': 'Error 400, skin type must be defined'}
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
-        return self.list(request, product_id)
+        return self.retrieve(request, product_id)
 
 
 

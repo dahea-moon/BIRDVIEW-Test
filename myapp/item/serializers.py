@@ -16,6 +16,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     imgUrl = serializers.SerializerMethodField('get_imgUrl')
+    recommends = serializers.SerializerMethodField('get_recommends')
 
     class Meta:
         model = Product
@@ -24,6 +25,15 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     def get_imgUrl(self, product):
         imgUrl = f'https://grepp-programmers-challenges.s3.ap-northeast-2.amazonaws.com/2020-birdview/image/{product.imageId}.jpg'
         return imgUrl
+
+    def get_recommends(self, product):
+        skin_type = self.context['skin_type']
+        queryset = Product.objects.exclude(id=product.id)
+        queryset = queryset.order_by(f'-{skin_type}_score', 'price')[:3]
+        return ProductRecommendSerializer(
+            queryset,
+            many=True,
+        ).data
 
 
 class ProductRecommendSerializer(serializers.ModelSerializer):
@@ -36,10 +46,6 @@ class ProductRecommendSerializer(serializers.ModelSerializer):
     def get_imgUrl(self, product):
         imgUrl = f'https://grepp-programmers-challenges.s3.ap-northeast-2.amazonaws.com/2020-birdview/thumbnail/{product.imageId}.jpg'
         return imgUrl
-
-
-# class ProductDetailResponseSerializer(serializers.Serializer):
-
 
 
 class IngredientSerializer(serializers.ModelSerializer):
