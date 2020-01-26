@@ -89,23 +89,23 @@ class ProductDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
         return self.retrieve(request, product_id)
 
 
-@require_GET
-def create_product(request):
-    product_form = ProductForm(request.GET)
-    if product_form.is_valid():
-        product = product_form.save()
-        ingredient_list = product.ingredients.split(',')
-        oily_score, dry_score, sensitive_score = 0, 0, 0
-        for ingredient in ingredient_list:
-            target_ingredient = Ingredient.objects.get(name=ingredient)
-            product.ingredientsList.add(target_ingredient)
-            oily_score += target_ingredient.get_oily_score()
-            dry_score += target_ingredient.get_dry_score()
-            sensitive_score += target_ingredient.get_sensitive_score()
+# @require_GET
+# def create_product(request):
+#     product_form = ProductForm(request.GET)
+#     if product_form.is_valid():
+#         product = product_form.save()
+#         ingredient_list = product.ingredients.split(',')
+#         oily_score, dry_score, sensitive_score = 0, 0, 0
+#         for ingredient in ingredient_list:
+#             target_ingredient = Ingredient.objects.get(name=ingredient)
+#             product.ingredientsList.add(target_ingredient)
+#             oily_score += target_ingredient.get_oily_score()
+#             dry_score += target_ingredient.get_dry_score()
+#             sensitive_score += target_ingredient.get_sensitive_score()
 
-        product.oily_score = oily_score
-        product.dry_score = dry_score
-        product.sensitive_score = sensitive_score
-        product.save()
-        return HttpResponse('success')
-    return Http404
+#         product.oily_score = oily_score
+#         product.dry_score = dry_score
+#         product.sensitive_score = sensitive_score
+#         product.save()
+#         return HttpResponse('success')
+#     return Http404
