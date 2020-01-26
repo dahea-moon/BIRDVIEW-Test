@@ -5,7 +5,7 @@ from rest_framework import generics, mixins, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
-from .serializers import ProductSerializer, ProductDetailSerializer, ProductRecommendSerializer
+from .serializers import ProductSerializer, ProductDetailSerializer
 from .models import Product, Ingredient
 from .forms import ProductForm
 
@@ -71,12 +71,6 @@ class ProductDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
         context['skin_type'] = self.request.query_params.get('skin_type')
         return context
 
-    def get_recommends(self, product_id):
-        skin_type = self.request.query_params.get('skin_type', None)
-        queryset = Product.objects.exclude(id=product_id)
-        queryset = queryset.order_by(f'-{skin_type}_score', 'price')[:3]
-        return queryset
-
     def get_product(self, product_id):
         queryset = Product.objects.all()
         product = get_object_or_404(queryset, id=product_id)
@@ -85,11 +79,7 @@ class ProductDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
     def retrieve(self, request, product_id):
         product = self.get_product(product_id)
         serializer = self.get_serializer(product, context={'request': request})
-        result = list(serializer.data)
-        print(result)
-        print(type(result))
-
-        return Response(result)
+        return Response(serializer.data)
 
     def get(self, request, product_id):
         skin_type = self.request.query_params.get('skin_type', None)
@@ -97,10 +87,6 @@ class ProductDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
             message = {'message': 'Error 400, skin type must be defined'}
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
         return self.retrieve(request, product_id)
-
-
-
-
 
 
 @require_GET
@@ -123,5 +109,3 @@ def create_product(request):
         product.save()
         return HttpResponse('success')
     return Http404
-
-        

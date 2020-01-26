@@ -21,7 +21,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path(r'', views.index),
     path('', include('myapp.item.urls'))
-    # path('prdoducts', product_views.product_list, name='product_list'),
-    # path('product/<int:product_id>', product_views.product_detail, name='product_detail'),
-    # path('product/create/', product_views.create_product, name='create_product')
 ]

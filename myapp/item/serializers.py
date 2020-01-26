@@ -20,7 +20,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        exclude = ('imageId','ingredientsList', 'oily_score', 'dry_score', 'sensitive_score')
+        fields = ('id', 'imgUrl', 'name', 'price', 'gender', 'category', 'ingredients', 'monthlySales', 'recommends')
 
     def get_imgUrl(self, product):
         imgUrl = f'https://grepp-programmers-challenges.s3.ap-northeast-2.amazonaws.com/2020-birdview/image/{product.imageId}.jpg'

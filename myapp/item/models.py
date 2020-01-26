@@ -9,7 +9,7 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return self.name
-
+    
     def get_oily_score(self):
         if self.oily == 'O':
             return 1
@@ -51,3 +51,4 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
